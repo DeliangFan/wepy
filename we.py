@@ -172,13 +172,15 @@ class WeatherFormat(object):
         self.main = weather['main']
         self.description = weather['description']
         #(NOTE) UTC vs Localtime
-        self.dt = data['dt']
         self.data = data
 
         if self.id in WEATHER_MAPE:
             self.weather_icon = copy.deepcopy(WEATHER_ICON[WEATHER_MAPE[self.id]])
         else:
             self.weather_icon = copy.deepcopy(WEATHER_ICON['unknown'])
+
+        self.dt = data['dt']
+        self.date = time.asctime(time.localtime(self.dt))[0:10]
 
     def get_wind_icon(self):
         if self.wind_deg >= 337.5 or self.wind_deg < 22.5:
@@ -200,7 +202,7 @@ class WeatherFormat(object):
 
         return wind_icon
 
-    def format_today(self):
+    def format_daily(self):
         temp = self.data['temp']
         self.temp_min = temp['min']
         self.temp_max = temp['max']
@@ -219,11 +221,9 @@ class WeatherFormat(object):
         ret[2] += wind_ret
         ret[3] += temp_ret
         ret[4] += 'Humidity: ' + str(self.humidity)
+        ret.append(self.date)
 
         return ret
-
-    def format_forecast(self):
-        pass
 
 
 class OpenWeatherMap(object):
@@ -234,8 +234,7 @@ class OpenWeatherMap(object):
         self.country = None
         self.APPID = None
         self.host = 'api.openweathermap.org'
-        self.forecast_path = '/data/2.5/forecast?units=metric&q=' + self.q
-        self.today_path = '/data/2.5/forecast/daily?units=metric&cnt=1&q=' + self.q
+        self.today_path = '/data/2.5/forecast/daily?units=metric&cnt=15&q=' + self.q
 
     def http_request(self, path):
         # try:...  We need handle exception here.
@@ -247,26 +246,35 @@ class OpenWeatherMap(object):
         if res.status in (200, 201, 202, 204):
             return res.read()
 
-    def parse_forecast_weather(self):
-        resp = self.http_request(self.forecast_path)
-        data = json.loads(resp)
-
-        return data['list'] 
-
-    def parse_today_weather(self):
+    def get_weather_data(self):
         resp = self.http_request(self.today_path)
+        # TypeError: expected string or buffer
         data = json.loads(resp)
 
         self.city = data['city']['name']
         self.country = data['city']['country']
-        today_data = data['list'][0]
+        data = data['list']
 
-        return today_data 
+        return data 
 
 
 def print_city_info(city, country):
     print("Weather for City: %s  %s\n" %(city, country))
 
+
+def print_date_info(data):
+    lines = [ 
+        "┌──────────────────────────────┬──────────────────────────────┬──────────────────────────────┬──────────────────────────────┐",
+        "│                              │                              |                              │                              │",
+        "├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤",
+        "|                              |                              |                              |                              |",
+        "|                              |                              |                              |                              |",
+        "|                              |                              |                              |                              |",
+        "|                              |                              |                              |                              |",
+        "|                              |                              |                              |                              |",
+        "└──────────────────────────────┴──────────────────────────────┴──────────────────────────────┴──────────────────────────────┘"]
+    line1 = lines[1]
+    
 
 def print_today_weather(data):
     today = WeatherFormat(data)
@@ -275,19 +283,17 @@ def print_today_weather(data):
     for line in ret:
         print(line)
 
-    print('\n')
-
-
-def print_forecast_weather():
-    pass
-
-
-def print_day_weather():
-    pass
 
 if '__main__' == __name__:
     weather = OpenWeatherMap()
-    today_data = weather.parse_today_weather()
-    forecast_data = weather.parse_forecast_weather()
+    data = weather.get_weather_data()
+
+    format_data = []
+    for d in data[0:12]:
+        daily_data = WeatherFormat(d)
+        format_data.append(daily_data.format_daily())
+
+    for i in range(3):
+        print_date_info(format_data[4*i: 4*i + 4])
+    
     print_city_info(weather.city, weather.country)
-    print_today_weather(today_data)
