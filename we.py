@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import copy
 import httplib 
 import json
+
+import copy
+import sys
 import time
 
 
@@ -170,9 +172,11 @@ class WeatherFormat(object):
         weather = data['weather'][0]
         self.id = weather['id']
         self.main = weather['main']
-        self.description = weather['description']
-        #(NOTE) UTC vs Localtime
-        self.data = data
+
+        if len(weather['description']) >= 16:
+            self.description = weather['description'][0:16]
+        else:
+            self.description = weather['description']
 
         if self.id in WEATHER_MAPE:
             self.weather_icon = copy.deepcopy(WEATHER_ICON[WEATHER_MAPE[self.id]])
@@ -181,8 +185,10 @@ class WeatherFormat(object):
 
         self.dt = data['dt']
         self.date = time.asctime(time.localtime(self.dt))[0:10]
+        self.data = data
 
     def get_wind_icon(self):
+
         if self.wind_deg >= 337.5 or self.wind_deg < 22.5:
             wind_icon = WIND_ICON['N']
         elif self.wind_deg >= 22.5 and self.wind_deg < 67.5:
@@ -203,6 +209,7 @@ class WeatherFormat(object):
         return wind_icon
 
     def format_daily(self):
+
         temp = self.data['temp']
         self.temp_min = temp['min']
         self.temp_max = temp['max']
@@ -235,9 +242,9 @@ class WeatherFormat(object):
 
 
 class OpenWeatherMap(object):
-    def __init__(self):
+    def __init__(self, q=None):
         # City name.
-        self.q = 'beijing'
+        self.q = q or 'beijing'
         self.city = None
         self.country = None
         self.APPID = None
@@ -304,7 +311,11 @@ def print_city_info(city, country):
 
 
 if '__main__' == __name__:
-    weather = OpenWeatherMap()
+    if len(sys.argv) == 1:
+        weather = OpenWeatherMap()
+    else:
+        weather = OpenWeatherMap(sys.argv[1])
+
     data = weather.get_weather_data()
 
     format_data = []
