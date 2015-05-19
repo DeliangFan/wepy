@@ -223,6 +223,14 @@ class WeatherFormat(object):
         ret[4] += 'Humidity: ' + str(self.humidity)
         ret.append(self.date)
 
+        length = [len(self.main) + 17,
+                  len(self.description) + 17,
+                  len('  ' + str(self.wind_speed) + ' m/s') + 18,
+                  len(temp_ret) + 16,
+                  len('Humidity: ' + str(self.humidity)) + 17]
+
+        ret.append(length)
+
         return ret
 
 
@@ -258,30 +266,41 @@ class OpenWeatherMap(object):
         return data 
 
 
+class PrintWeather(object):
+    def __init__(self, data):
+        self.data = data
+        self.lines = [ 
+            "┌──────────────────────────────┬──────────────────────────────┬──────────────────────────────┬──────────────────────────────┐",
+            "│                              │                              |                              │                              │",
+            "├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤",
+            "|                              |                              |                              |                              |",
+            "|                              |                              |                              |                              |",
+            "|                              |                              |                              |                              |",
+            "|                              |                              |                              |                              |",
+            "|                              |                              |                              |                              |",
+            "└──────────────────────────────┴──────────────────────────────┴──────────────────────────────┴──────────────────────────────┘"]
+
+    def prepare_date(self):
+        d_line = ""
+        for i in range(4):
+            d_line += "│          " + self.data[i][5]  + "          "
+        d_line += "|"
+        self.lines[1] = d_line
+
+    def prepare_weather(self):
+        for i in range(5):
+            w_line = ""
+            for j in range(4):
+                if self.data[j][6][i] <= 34:
+                    w_line += "|" + self.data[j][i] + " " * (34 -self.data[j][6][i])
+                else:
+                    w_line += "|" + self.data[j][i][0:34]
+            w_line += "|"
+            self.lines[i + 3] = w_line
+
+
 def print_city_info(city, country):
-    print("Weather for City: %s  %s\n" %(city, country))
-
-
-def print_date_info(data):
-    lines = [ 
-        "┌──────────────────────────────┬──────────────────────────────┬──────────────────────────────┬──────────────────────────────┐",
-        "│                              │                              |                              │                              │",
-        "├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤",
-        "|                              |                              |                              |                              |",
-        "|                              |                              |                              |                              |",
-        "|                              |                              |                              |                              |",
-        "|                              |                              |                              |                              |",
-        "|                              |                              |                              |                              |",
-        "└──────────────────────────────┴──────────────────────────────┴──────────────────────────────┴──────────────────────────────┘"]
-    line1 = lines[1]
-    
-
-def print_today_weather(data):
-    today = WeatherFormat(data)
-    ret = today.format_today()
-
-    for line in ret:
-        print(line)
+    print("\nWeather for City: %s  %s\n" %(city, country))
 
 
 if '__main__' == __name__:
@@ -293,7 +312,13 @@ if '__main__' == __name__:
         daily_data = WeatherFormat(d)
         format_data.append(daily_data.format_daily())
 
-    for i in range(3):
-        print_date_info(format_data[4*i: 4*i + 4])
-    
     print_city_info(weather.city, weather.country)
+
+    for i in range(3):
+        p = PrintWeather(format_data[4*i: 4*i + 4])
+        p.prepare_date()
+        p.prepare_weather()
+        for j in range(9):
+            print(p.lines[j])
+        print('\n')
+    
