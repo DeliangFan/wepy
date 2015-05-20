@@ -370,6 +370,10 @@ class PrintWeather(object):
             w_line += "|"
             self.lines[i + 3] = w_line
 
+    def prepare_all(self):
+        self.prepare_date()
+        self.prepare_weather()
+
 
 def print_city_info(city, country):
     city_info = "\n\033[38;5;202mWeather for City: \033[0m"
@@ -389,19 +393,16 @@ if '__main__' == __name__:
     else:
         weather = OpenWeatherMap(sys.argv[1])
 
-    data = weather.get_weather_data()
-
     format_data = []
+    data = weather.get_weather_data()
+    #(Note) we only print 12 days weather.
     for d in data[0:12]:
         daily_data = WeatherFormat(d)
         format_data.append(daily_data.format_daily())
 
     print_city_info(weather.city, weather.country)
-
     for i in range(3):
-        p = PrintWeather(format_data[4*i: 4*i + 4])
-        p.prepare_date()
-        p.prepare_weather()
+        print_weather = PrintWeather(format_data[4*i: 4*i + 4])
+        print_weather.prepare_all()
         for j in range(9):
-            print(p.lines[j])
-        print('\n')
+            print(print_weather.lines[j])
