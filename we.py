@@ -179,6 +179,18 @@ TEMP_COLOR = {
     9: '220',
 }
 
+WIND_COLOR = {
+    0: '82',
+    1: '118',
+    2: '154',
+    3: '190',
+    4: '226',
+    5: '220',
+    6: '214',
+    7: '208',
+    9: '202',
+}
+
 
 class WeatherFormat(object):
     def __init__(self, data):
@@ -222,7 +234,12 @@ class WeatherFormat(object):
         return wind_icon
 
     def color_wind(self, wind_speed):
-        pass
+        if int(wind_speed * 1.2) >= 9:
+            color = WIND_COLOR[9]
+        else:
+            color = WIND_COLOR[int(wind_speed * 1.2)]
+
+        return "\033[38;5;" + color + "m" + str(wind_speed) + "\033[0m"
 
     def color_temp(self, temp):
         temp += 15
@@ -247,7 +264,7 @@ class WeatherFormat(object):
         self.wind_speed = self.data['speed']
         self.wind_icon = self.get_wind_icon()
 
-        wind_ret = self.wind_icon +  "  \033[38;5;82m" + str(self.wind_speed) + "\033[0m m/s"
+        wind_ret = self.wind_icon +  "  " + self.color_wind(self.wind_speed)  + " m/s"
         temp_ret = self.color_temp(self.temp_min) + " - " + self.color_temp(self.temp_max) + ' °C' 
 
         ret = list(self.weather_icon)
