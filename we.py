@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import httplib 
+import httplib
 import json
 
 import copy
@@ -250,7 +250,7 @@ class WeatherFormat(object):
         else:
             color = TEMP_COLOR[int(temp / 7)]
 
-        return "\033[38;5;" + color + "m" + str(temp - 15) + "\033[0m" 
+        return "\033[38;5;" + color + "m" + str(temp - 15) + "\033[0m"
 
     def color_date(self, date):
         return "\033[38;5;202m" + date + "\033[0m"
@@ -269,8 +269,8 @@ class WeatherFormat(object):
         self.wind_speed = self.data['speed']
         self.wind_icon = self.get_wind_icon()
 
-        wind_ret = self.wind_icon +  "  " + self.color_wind(self.wind_speed)  + " m/s"
-        temp_ret = self.color_temp(self.temp_min) + " - " + self.color_temp(self.temp_max) + ' °C' 
+        wind_ret = self.wind_icon + "  " + self.color_wind(self.wind_speed) + " m/s"
+        temp_ret = self.color_temp(self.temp_min) + " - " + self.color_temp(self.temp_max) + ' °C'
 
         ret = list(self.weather_icon)
         ret[0] += self.color_main(self.main)
@@ -334,13 +334,13 @@ class OpenWeatherMap(object):
         self.country = data['city']['country']
         data = data['list']
 
-        return data 
+        return data
 
 
 class PrintWeather(object):
     def __init__(self, data):
         self.data = data
-        self.lines = [ 
+        self.lines = [
             "┌──────────────────────────────┬──────────────────────────────┬──────────────────────────────┬──────────────────────────────┐",
             "│                              │                              |                              │                              │",
             "├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤",
@@ -354,7 +354,7 @@ class PrintWeather(object):
     def prepare_date(self):
         d_line = ""
         for i in range(4):
-            d_line += "│          " + self.data[i][5]  + "          "
+            d_line += "│          " + self.data[i][5] + "          "
         d_line += "|"
         self.lines[1] = d_line
 
@@ -363,7 +363,8 @@ class PrintWeather(object):
             w_line = ""
             for j in range(4):
                 if self.data[j][6][i] <= 34:
-                    w_line += "|" + self.data[j][i] + " " * (34 -self.data[j][6][i])
+                    w_line += "|" + self.data[j][i] + \
+                        " " * (34 - self.data[j][6][i])
                 else:
                     w_line += "|" + self.data[j][i][0:34]
             w_line += "|"
@@ -404,4 +405,3 @@ if '__main__' == __name__:
         for j in range(9):
             print(p.lines[j])
         print('\n')
-    
