@@ -188,7 +188,7 @@ WIND_COLOR = {
     5: '220',
     6: '214',
     7: '208',
-    9: '202',
+    8: '202',
 }
 
 
@@ -234,8 +234,8 @@ class WeatherFormat(object):
         return wind_icon
 
     def color_wind(self, wind_speed):
-        if int(wind_speed * 1.2) >= 9:
-            color = WIND_COLOR[9]
+        if int(wind_speed * 1.2) >= 8:
+            color = WIND_COLOR[8]
         else:
             color = WIND_COLOR[int(wind_speed * 1.2)]
 
@@ -302,16 +302,18 @@ class OpenWeatherMap(object):
         self.today_path = '/data/2.5/forecast/daily?units=metric&cnt=15&q=' + self.q
 
     def http_request(self, path):
-        # try:...  We need handle exception here.
-
-        conn = httplib.HTTPConnection(self.host)
-        conn.request('GET', path)
+        try:
+            conn = httplib.HTTPConnection(self.host)
+            conn.request('GET', path)
+        except Exception as ex:
+            print_exit_error(ex)
 
         res = conn.getresponse()
-        if res.status in (200, 201, 202, 204):
+        if res.status in OK_STATUS:
             body = res.read()
         else:
-            body = None
+            msg = "Network Problem: please try again later ^_^."
+            print_exit_error(msg)
 
         conn.close()
 
@@ -319,13 +321,14 @@ class OpenWeatherMap(object):
 
     def get_weather_data(self):
         resp = self.http_request(self.today_path)
-        # TypeError: expected string or buffer
 
         if not resp:
-            exit(0)
+            print_exit_error("Response data is None.")
 
         data = json.loads(resp)
 
+        if data['cod'] == "404":
+            print_exit_error("Sorry, the city is not found.")
 
         self.city = data['city']['name']
         self.country = data['city']['country']
@@ -371,6 +374,12 @@ def print_city_info(city, country):
     city_info = "\n\033[38;5;202mWeather for City: \033[0m"
     city_info += "\033[1;5;32m" + city + " " + country + "\033[0m\n"
     print(city_info)
+
+
+def print_exit_error(msg):
+    msg = "\033[31m" + msg + "\033[0m"
+    print(msg)
+    exit(-1)
 
 
 if '__main__' == __name__:
