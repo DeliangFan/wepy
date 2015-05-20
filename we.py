@@ -166,6 +166,19 @@ WEATHER_MAPE = {
     200: 'fog',
 }
 
+TEMP_COLOR = {
+    0: '27',
+    1: '39',
+    2: '51',
+    3: '49',
+    4: '47',
+    5: '82',
+    6: '190',
+    7: '154',
+    8: '214',
+    9: '220',
+}
+
 
 class WeatherFormat(object):
     def __init__(self, data):
@@ -208,11 +221,20 @@ class WeatherFormat(object):
 
         return wind_icon
 
-    def color_wind(self):
+    def color_wind(self, wind_speed):
         pass
 
-    def color_temp(self):
-        pass
+    def color_temp(self, temp):
+        temp += 15
+        if temp < 0:
+            color = TEMP_COLOR[0]
+        elif temp > 56:
+            color = TEMP_COLOR[9]
+        else:
+            color = TEMP_COLOR[int(temp / 7)]
+
+        return "\033[38;5;" + color + "m" + str(temp - 15) + "\033[0m" 
+
 
     def format_daily(self):
 
@@ -226,7 +248,7 @@ class WeatherFormat(object):
         self.wind_icon = self.get_wind_icon()
 
         wind_ret = self.wind_icon +  "  \033[38;5;82m" + str(self.wind_speed) + "\033[0m m/s"
-        temp_ret =   "\033[38;5;226m" + str(self.temp_min) + "\033[0m"  + " - " + str(self.temp_max) + ' °C' 
+        temp_ret = self.color_temp(self.temp_min) + " - " + self.color_temp(self.temp_max) + ' °C' 
 
         ret = list(self.weather_icon)
         ret[0] += self.main
@@ -270,10 +292,6 @@ class OpenWeatherMap(object):
             body = None
 
         conn.close()
-
-        print res.status
-        print res.reason
-        print body
 
         return body
 
