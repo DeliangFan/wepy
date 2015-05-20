@@ -255,6 +255,9 @@ class WeatherFormat(object):
     def color_date(self, date):
         return "\033[38;5;202m" + date + "\033[0m"
 
+    def color_main(self, main):
+        return "\033[1;5;32m" + main + "\033[0m"
+
     def format_daily(self):
 
         temp = self.data['temp']
@@ -270,7 +273,7 @@ class WeatherFormat(object):
         temp_ret = self.color_temp(self.temp_min) + " - " + self.color_temp(self.temp_max) + ' °C' 
 
         ret = list(self.weather_icon)
-        ret[0] += self.main
+        ret[0] += self.color_main(self.main)
         ret[1] += self.description
         ret[2] += wind_ret
         ret[3] += temp_ret
