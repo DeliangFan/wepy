@@ -368,7 +368,9 @@ class PrintWeather(object):
 
 
 def print_city_info(city, country):
-    print("\nWeather for City: %s  %s\n" %(city, country))
+    city_info = "\n\033[38;5;202mWeather for City: \033[0m"
+    city_info += "\033[1;5;32m" + city + " " + country + "\033[0m\n"
+    print(city_info)
 
 
 if '__main__' == __name__:
