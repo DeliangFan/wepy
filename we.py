@@ -252,6 +252,8 @@ class WeatherFormat(object):
 
         return "\033[38;5;" + color + "m" + str(temp - 15) + "\033[0m" 
 
+    def color_date(self, date):
+        return "\033[38;5;202m" + date + "\033[0m"
 
     def format_daily(self):
 
@@ -273,7 +275,7 @@ class WeatherFormat(object):
         ret[2] += wind_ret
         ret[3] += temp_ret
         ret[4] += 'Humidity: ' + str(self.humidity)
-        ret.append(self.date)
+        ret.append(self.color_date(self.date))
 
         length = [len(self.main) + 17,
                   len(self.description) + 17,
