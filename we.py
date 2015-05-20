@@ -208,6 +208,12 @@ class WeatherFormat(object):
 
         return wind_icon
 
+    def color_wind(self):
+        pass
+
+    def color_temp(self):
+        pass
+
     def format_daily(self):
 
         temp = self.data['temp']
@@ -219,8 +225,8 @@ class WeatherFormat(object):
         self.wind_speed = self.data['speed']
         self.wind_icon = self.get_wind_icon()
 
-        wind_ret = self.wind_icon + '  ' + str(self.wind_speed) + ' m/s'
-        temp_ret = str(self.temp_min) + ' - ' + str(self.temp_max) + ' °C' 
+        wind_ret = self.wind_icon +  "  \033[38;5;82m" + str(self.wind_speed) + "\033[0m m/s"
+        temp_ret =   "\033[38;5;226m" + str(self.temp_min) + "\033[0m"  + " - " + str(self.temp_max) + ' °C' 
 
         ret = list(self.weather_icon)
         ret[0] += self.main
@@ -233,7 +239,7 @@ class WeatherFormat(object):
         length = [len(self.main) + 17,
                   len(self.description) + 17,
                   len('  ' + str(self.wind_speed) + ' m/s') + 18,
-                  len(temp_ret) + 16,
+                  len(str(self.temp_min) + " - " + str(self.temp_max) + ' °C') + 16,
                   len('Humidity: ' + str(self.humidity)) + 17]
 
         ret.append(length)
@@ -259,12 +265,27 @@ class OpenWeatherMap(object):
 
         res = conn.getresponse()
         if res.status in (200, 201, 202, 204):
-            return res.read()
+            body = res.read()
+        else:
+            body = None
+
+        conn.close()
+
+        print res.status
+        print res.reason
+        print body
+
+        return body
 
     def get_weather_data(self):
         resp = self.http_request(self.today_path)
         # TypeError: expected string or buffer
+
+        if not resp:
+            exit(0)
+
         data = json.loads(resp)
+
 
         self.city = data['city']['name']
         self.country = data['city']['country']
